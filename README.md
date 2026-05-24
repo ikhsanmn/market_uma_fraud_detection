@@ -225,3 +225,18 @@ For the full methodology, literature review, and design decisions, see `market_m
 - Xu & Livshits (USENIX Security, 2019) — Random Forest baseline for P&D detection
 - Chadalapaka et al. (arXiv:2205.04646, 2022) — CLSTM and Anomaly-Transformer for crypto P&D
 - Gogol et al. (arXiv:2412.18848, 2025) — real-time P&D detection fusing social + order-book data
+
+
+## Fixes Applied in 1.1 version
+- M1 — 01_pipeline.ipynb cell-7 (single-ticker batch corruption)
+Added not isinstance(raw.columns, pd.MultiIndex) guard so the manual column-wrapping only runs when yfinance actually returns flat columns — no-op for yfinance ≥ 0.2 which already returns MultiIndex.
+
+- M2 — 01_pipeline.ipynb cell-17 (calendar days → trading days)
+Replaced pd.Timedelta(days=EVENT_WINDOW[i]) with pd.offsets.BDay(EVENT_WINDOW[i]). The event window is now always exactly ±5 trading days regardless of what weekday the UMA falls on.
+
+- M3 — 01_pipeline.ipynb new cell after section 9 + 02_results.ipynb cell-5 & cell-7 (test-set threshold leakage)
+Added a new cell in the pipeline that computes optimal thresholds from validation data only: ML models use 5-fold TimeSeriesSplit out-of-fold predictions (with SMOTE inside each fold via ImbPipeline); DL models use the last 15% of their training sequences. Thresholds saved to results/optimal_thresholds.json.
+02_results.ipynb now loads that JSON instead of searching the test set. optimal_threshold(name) takes the model name, not test labels.
+
+- M4 — 02_results.ipynb cell-20 (stale train/test period text)
+Updated "trained on 2021–2023 and tested on 2024" → "trained on 2021–2024 and tested on 2025–2026" throughout the Threats to Validity section.
